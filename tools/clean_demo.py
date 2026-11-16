@@ -45,6 +45,11 @@ for p in ROOT.rglob("index.html"):
     s = re.sub(r'(href=)"' + re.escape(B) + r'pj-categs/([^/"]+)/"', cat, s)
     s = re.sub(r'<link rel="alternate" type="text/calendar"[^>]*>\s*', "", s)
     s = re.sub(r'<link rel="alternate" type="application/(rss|atom)\+xml"[^>]*>\s*', "", s)  # WordPress feeds
+    # cookie consent banner (site sets no tracking cookies; owner asked to remove it)
+    for pat in (r'<script id="cookie-law-info-js-extra">.*?</script>\s*', r'<script id="cookie-law-info-js"[^>]*></script>\s*',
+                r'<script id="ckyBannerTemplate" type="text/template">.*?</script>\s*', r'<style id="cky-style-inline">.*?</style>\s*',
+                r'<link[^>]*cookie-law-info[^>]*>\s*'):
+        s = re.sub(pat, "", s, flags=re.S)
     s = s.replace(B + "project/bridges-of-sports-2/", B + "project/bridges-of-sports/")  # duplicate page removed
     if s != o:
         p.write_text(s, encoding="utf-8"); changed += 1
