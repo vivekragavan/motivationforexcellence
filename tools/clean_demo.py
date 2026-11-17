@@ -56,6 +56,8 @@ for p in ROOT.rglob("index.html"):
     # bottom area email line: owner wants the same wording as the Contact Us page (also fixes broken mailto quote)
     s = s.replace('<p style="text-align: center;"><a style="font-size: 18px; color:#fff;" href="mailto:info@motivationforexcellence.org target="_blank">info@motivationforexcellence.org</a></p>',
                   '<p style="text-align: center; font-size: 18px;">For more information, contact us at <a style="font-size: 18px; color:#fff;" href="mailto:info@motivationforexcellence.org">info@motivationforexcellence.org</a></p>')
+    # small "Home / Page" breadcrumb under page titles: owner asked to remove it everywhere
+    s = re.sub(r'<div class="cmsmasters_breadcrumbs"><div class="cmsmasters_breadcrumbs_inner">.*?</div></div>', "", s, flags=re.S)
     s = s.replace(B + "project/bridges-of-sports-2/", B + "project/bridges-of-sports/")  # duplicate page removed
     if s != o:
         p.write_text(s, encoding="utf-8"); changed += 1
