@@ -53,7 +53,10 @@ for p in ROOT.rglob("index.html"):
     # "Contact Us" menu item jumped to the footer; owner wants it to open the Contact Us page
     s = s.replace('menu-item-13038 menu-item-depth-0"><a href="#footer">',
                   'menu-item-13038 menu-item-depth-0"><a href="' + B + 'contact-us/">')
-    s = s.replace(B + "project/bridges-of-sports-2/",B + "project/bridges-of-sports/")  # duplicate page removed
+    # bottom area email line: owner wants the same wording as the Contact Us page (also fixes broken mailto quote)
+    s = s.replace('<p style="text-align: center;"><a style="font-size: 18px; color:#fff;" href="mailto:info@motivationforexcellence.org target="_blank">info@motivationforexcellence.org</a></p>',
+                  '<p style="text-align: center; font-size: 18px;">For more information, contact us at <a style="font-size: 18px; color:#fff;" href="mailto:info@motivationforexcellence.org">info@motivationforexcellence.org</a></p>')
+    s = s.replace(B + "project/bridges-of-sports-2/", B + "project/bridges-of-sports/")  # duplicate page removed
     if s != o:
         p.write_text(s, encoding="utf-8"); changed += 1
 print("pages changed:", changed)
