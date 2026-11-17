@@ -50,7 +50,10 @@ for p in ROOT.rglob("index.html"):
                 r'<script id="ckyBannerTemplate" type="text/template">.*?</script>\s*', r'<style id="cky-style-inline">.*?</style>\s*',
                 r'<link[^>]*cookie-law-info[^>]*>\s*'):
         s = re.sub(pat, "", s, flags=re.S)
-    s = s.replace(B + "project/bridges-of-sports-2/", B + "project/bridges-of-sports/")  # duplicate page removed
+    # "Contact Us" menu item jumped to the footer; owner wants it to open the Contact Us page
+    s = s.replace('menu-item-13038 menu-item-depth-0"><a href="#footer">',
+                  'menu-item-13038 menu-item-depth-0"><a href="' + B + 'contact-us/">')
+    s = s.replace(B + "project/bridges-of-sports-2/",B + "project/bridges-of-sports/")  # duplicate page removed
     if s != o:
         p.write_text(s, encoding="utf-8"); changed += 1
 print("pages changed:", changed)
