@@ -117,9 +117,11 @@ def make_404(contact_html: str) -> str:
     h = re.sub(r'<meta (name="description"|property="og:[a-z:]+"|name="twitter:[a-z:]+")[^>]*>\r?\n?', "", h)
     h = re.sub(r'<script type="application/ld\+json"[^>]*>.*?</script>\r?\n?', "", h, flags=re.S)
     h = re.sub(r"(<head[^>]*>)", r'\1\n<meta name="robots" content="noindex">', h, count=1)
-    old = re.search(r'For more information, contact us at <a href="mailto:[^"]+">[^<]+</a>', h)
-    h = h[:old.start()] + ("Sorry, we couldn't find that page. Please use the menu above, or go to our "
-                           '<a href="/">home page</a>.') + h[old.end():]
+    # contact block = optional address paragraph + "For more information..." paragraph -> one 404 message
+    old = re.search(r'<p style="text-align:center;font-size:20px;margin:30px.*?For more information, contact us at <a [^>]*href="mailto:[^"]+">[^<]+</a></p>', h, flags=re.S)
+    h = h[:old.start()] + ('<p style="text-align:center;font-size:20px;margin:30px 0 40px;">'
+                           "Sorry, we couldn't find that page. Please use the menu above, or go to our "
+                           '<a href="/">home page</a>.</p>') + h[old.end():]
     return h
 
 def referenced_files(out: pathlib.Path) -> set:
