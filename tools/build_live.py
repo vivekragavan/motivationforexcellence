@@ -117,11 +117,15 @@ def make_404(contact_html: str) -> str:
     h = re.sub(r'<meta (name="description"|property="og:[a-z:]+"|name="twitter:[a-z:]+")[^>]*>\r?\n?', "", h)
     h = re.sub(r'<script type="application/ld\+json"[^>]*>.*?</script>\r?\n?', "", h, flags=re.S)
     h = re.sub(r"(<head[^>]*>)", r'\1\n<meta name="robots" content="noindex">', h, count=1)
-    # contact block = optional address paragraph + "For more information..." paragraph -> one 404 message
-    old = re.search(r'<p style="text-align:center;font-size:20px;margin:30px.*?For more information, contact us at <a [^>]*href="mailto:[^"]+">[^<]+</a></p>', h, flags=re.S)
-    h = h[:old.start()] + ('<p style="text-align:center;font-size:20px;margin:30px 0 40px;">'
+    # Contact Us page has no body text of its own (just title + black contact bar):
+    # put the 404 message in a white row right above the black bar
+    old = re.search(r'<div id="cmsmasters_row_[^"]+" class="cmsmasters_row cmsmasters_color_scheme_first', h)
+    h = h[:old.start()] + ('<div class="cmsmasters_row cmsmasters_color_scheme_default cmsmasters_row_boxed"><div class="cmsmasters_row_outer_parent">'
+                           '<div class="cmsmasters_row_outer"><div class="cmsmasters_row_inner"><div class="cmsmasters_row_margin">'
+                           '<div class="cmsmasters_column one_first"><div class="cmsmasters_text">'
+                           '<p style="text-align:center;font-size:20px;margin:100px 0 100px;">'
                            "Sorry, we couldn't find that page. Please use the menu above, or go to our "
-                           '<a href="/">home page</a>.</p>') + h[old.end():]
+                           '<a style="font-size:20px;" href="/">home page</a>.</p></div></div></div></div></div></div></div>\n') + h[old.start():]
     return h
 
 def referenced_files(out: pathlib.Path) -> set:
