@@ -147,6 +147,8 @@ def main():
             html = re.sub(r'(<span class="cmsmasters_project_category"><a href=")[^"]*(" class="cmsmasters_cat_color[^"]*" rel="category tag">)[^<]*(</a>)',
                           rf'\g<1>{BASE}/{SLUG}/\g<2>{TITLE}\g<3>', html)
             html = re.sub(r'pj-categs-[\w-]+', f'pj-categs-{SLUG}', html)
+            html = re.sub(r'(<div class="project_features_item_title">Area of Work</div><div class="project_features_item_desc">)[^<]*(</div>)',
+                          rf'\g<1>{TITLE}\g<2>', html)
         p.write_text(html)
     update_home()
     print(f"menu on {len(pages)} pages; moved: {MOVE or 'none yet'}")
