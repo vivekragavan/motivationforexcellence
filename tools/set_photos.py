@@ -21,6 +21,7 @@ PHOTOS = {  # slug: where the photo came from (for the record)
     "madhi-foundation": "madhifoundation.org home page",
     "makerghat": "makerghat.org home page (cropped below the speech bubbles)",
     "stem-shiksha-foundation": "makerbhavanfoundation.org (Indian partner of Maker Bhavan Foundation)",
+    "vidhya-vidhai-foundation": "owner's own photo IMG_2650.jpeg (Desktop)",
 }
 
 
