@@ -36,6 +36,7 @@ MOVES = {
     "gram-sewa-mandal": "livelihood-enhancement",
     "farmers-for-forests": "livelihood-enhancement",
     "movement-for-scavenger-community": "livelihood-enhancement",
+    "vasa": "livelihood-enhancement",
 }
 
 ART_RE = re.compile(r'<!-- Start Standard Project -->\s*<article id="post-\d+".*?</article>\s*<!-- Finish Standard Project -->\s*', re.S)
