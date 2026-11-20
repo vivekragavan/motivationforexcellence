@@ -22,7 +22,7 @@ CATS = ["healthcare", "education-training", "livelihood-enhancement",
         "nurturing-excellence", "philanthropy-partners"]
 
 # project slugs to move onto the Women's Empowerment page
-MOVE = []
+MOVE = ["stree-mukti-sanghatana", "society-for-nutrition-education-and-health-action", "chetana-vikas"]
 
 ART_RE = re.compile(r'<!-- Start Standard Project -->\s*<article id="post-\d+".*?</article>\s*<!-- Finish Standard Project -->\s*', re.S)
 GRID_RE = re.compile(r'(<div class="portfolio grid [^"]*">\n)(.*?)(</div><div class="cmsmasters_wrap_more_projects)', re.S)
