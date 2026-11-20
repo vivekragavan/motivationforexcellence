@@ -39,6 +39,7 @@ MOVES = {
     "vasa": "livelihood-enhancement",
     "bridges-of-sports": "nurturing-excellence",
     "ashoka-university": "nurturing-excellence",
+    "search-nirman": "nurturing-excellence",
 }
 
 # one programme of a two-programme partner listed in a second category: an extra box linking to
