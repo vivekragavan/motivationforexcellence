@@ -71,6 +71,11 @@ for p in ROOT.rglob("index.html"):
                       "@media only screen and (max-width: 767px) {\n\t.content_wrap.fullwidth.project_page { padding:0 20px !important; }\n}\n"
                       "@media only screen and (min-width: 951px) {\n\t.cmsmasters_open_project .project_features_item_title { max-width:none; }\n}\n"
                       "</style>\n</head>", 1)
+    # partner logos hot-linked from the dead mfe.crmleadgen.net host showed as broken images: owner chose to
+    # hide them until the real files come from the WordPress media library backup
+    s = re.sub(r'(?:<a [^>]*>\s*)?<img [^>]*src="https?://mfe\.crmleadgen\.net/[^>]*>(?:\s*</a>)?', "<!--deadlogo-->", s)
+    s = re.sub(r'<(p|h1)( [^>]*)?>\s*<!--deadlogo-->\s*</\1>', "", s)  # wrapper left empty
+    s = s.replace("<!--deadlogo-->", "")
     if s != o:
         p.write_text(s, encoding="utf-8"); changed += 1
 print("pages changed:", changed)
