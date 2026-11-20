@@ -142,12 +142,8 @@ def sidebar(meta):
 def new_page(tpl, meta, sections, slug, pid, title, nav):
     esc = html.escape(title)
     name, head = project_heading(sections)
-    site = meta.get("website", "")
-    logo = (f'<img loading="lazy" decoding="async" class="alignnone size-thumbnail" src="{PH}logo-150x150.svg" '
-            f'alt="{esc} logo (placeholder)" width="150" height="150" />')
-    if site.startswith("http"):
-        logo = f'<a href="{html.escape(site)}" target="_blank" rel="noopener">{logo}</a>'
-    content = "\n\n".join(["<p>" + logo + "</p>", to_html(sections["About"]), head, to_html(sections[name])])
+    # no logo block: owner asked for none (other project pages have no logos either)
+    content = "\n\n".join([to_html(sections["About"]), head, to_html(sections[name])])
 
     s = tpl
     s = s.replace("<title>Central Square Foundation &#8211;", f"<title>{esc} &#8211;")
