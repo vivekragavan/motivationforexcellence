@@ -63,11 +63,13 @@ for p in ROOT.rglob("index.html"):
     s = s.replace(B + "project/bridges-of-sports-2/", B + "project/bridges-of-sports/")  # duplicate page removed
     # project pages: the site's custom CSS makes .content_wrap.fullwidth 100vw with no padding, so text
     # touched the screen edges; owner asked for side margins. Centred column, like the footer.
-    if 'content_wrap fullwidth project_page' in s and "/* project margins */" not in s:
+    if 'content_wrap fullwidth project_page' in s:
+        s = re.sub(r"/\* project margins \*/\n.*?(?:@media[^{]*\{[^}]*\}\n\}\n)+(?=</style>)", "", s, flags=re.S)  # replace any earlier version
         s = s.replace("</style>\n</head>",
-                      "/* project margins */\n.content_wrap.fullwidth.project_page {\n\twidth:auto !important;\n\tmax-width:1200px;\n"
-                      "\tmargin:0 auto !important;\n\tpadding:0 40px !important;\n\tbox-sizing:border-box;\n}\n"
+                      "/* project margins */\n.content_wrap.fullwidth.project_page {\n\twidth:auto !important;\n\tmax-width:1440px;\n"
+                      "\tmargin:0 auto !important;\n\tpadding:0 30px !important;\n\tbox-sizing:border-box;\n}\n"
                       "@media only screen and (max-width: 767px) {\n\t.content_wrap.fullwidth.project_page { padding:0 20px !important; }\n}\n"
+                      "@media only screen and (min-width: 951px) {\n\t.cmsmasters_open_project .project_features_item_title { max-width:none; }\n}\n"
                       "</style>\n</head>", 1)
     if s != o:
         p.write_text(s, encoding="utf-8"); changed += 1
