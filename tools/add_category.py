@@ -44,19 +44,25 @@ MOVES = {
 
 # one programme of a two-programme partner shown as a separate, self-contained project in another
 # category: a new project page = the partner's intro + only that programme (the other one is cut),
-# plus its own listing box. The original page is left as it is.
+# plus its own listing box. The split-off programme is then cut from the original page, so each
+# programme appears in one place only (rerunning after the cut leaves both pages as they are).
 SPLIT = [
     dict(slug="makerghat", new="makerghat-ignite", post="23903", cat="nurturing-excellence",
          title="MakerGhat &#8211; IGNITE Maharashtra", keep="IGNITE Maharashtra:", drop="Maker Maharashtra:",
-         intro=("MFE supports two linked programmes", "MFE supports IGNITE Maharashtra over four years.")),
+         intro=("MFE supports two linked programmes", "MFE supports IGNITE Maharashtra over four years."),
+         rest="MFE supports Maker Maharashtra over four years."),
     dict(slug="stem-shiksha-foundation", new="maker-bhavan-inventx", post="23904", cat="nurturing-excellence",
          title="Maker Bhavan &#8211; InventX", keep="Scaling InventX:", drop="Nationwide expansion",
-         intro=("MFE supports two programmes", "MFE supports InventX over three years (October 2026 to September 2029).")),
+         intro=("MFE supports two programmes", "MFE supports InventX over three years (October 2026 to September 2029)."),
+         rest="MFE supports the nationwide expansion of Tinkerers&#8217; Labs over three years (October 2026 to September 2029)."),
 ]
 
 
 def make_split(sp):
-    html = (ROOT / "project" / sp["slug"] / "index.html").read_text()
+    src = ROOT / "project" / sp["slug"] / "index.html"
+    html = orig = src.read_text()
+    if f'<p><strong><em>{sp["keep"]}' not in orig:
+        return  # already split
     old = re.search(r'<h1 class="entry-title">([^<]*)</h1>', html).group(1)
     html = re.sub(rf'<p>{re.escape(sp["intro"][0])}[^<]*</p>', f'<p>{sp["intro"][1]}</p>', html)
     html = re.sub(rf'<p><strong><em>{re.escape(sp["drop"])}.*?(?=<p><strong><em>{re.escape(sp["keep"])})', "", html, flags=re.S)
@@ -70,6 +76,10 @@ def make_split(sp):
     out = ROOT / "project" / sp["new"] / "index.html"
     out.parent.mkdir(exist_ok=True)
     out.write_text(html)
+    # original page: cut the split-off programme (it is the last section) and fix the intro sentence
+    orig = re.sub(rf'<p>{re.escape(sp["intro"][0])}[^<]*</p>', f'<p>{sp["rest"]}</p>', orig)
+    orig = re.sub(rf'\n*<p><strong><em>{re.escape(sp["keep"])}.*?(?=</div></div><div class="project_sidebar">)', "\n", orig, flags=re.S)
+    src.write_text(orig)
 
 
 def split_box(box, sp):
