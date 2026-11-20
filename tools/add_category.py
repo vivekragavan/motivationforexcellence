@@ -22,7 +22,7 @@ CATS = ["healthcare", "education-training", "livelihood-enhancement",
         "nurturing-excellence", "philanthropy-partners"]
 
 # project slugs to move onto the Women's Empowerment page
-MOVE = ["stree-mukti-sanghatana", "society-for-nutrition-education-and-health-action", "chetana-vikas"]
+MOVE = ["aaa", "stree-mukti-sanghatana", "society-for-nutrition-education-and-health-action", "chetana-vikas"]
 
 ART_RE = re.compile(r'<!-- Start Standard Project -->\s*<article id="post-\d+".*?</article>\s*<!-- Finish Standard Project -->\s*', re.S)
 GRID_RE = re.compile(r'(<div class="portfolio grid [^"]*">\n)(.*?)(</div><div class="cmsmasters_wrap_more_projects)', re.S)
@@ -46,6 +46,51 @@ def add_menu(html, current=False):
 def project_slug(article):
     m = re.search(rf'href="{BASE}/project/([^/"]+)/"', article)
     return m.group(1) if m else None
+
+
+HOME_IMG = (f'<img loading="lazy" decoding="async" width="1024" height="600" '
+            f'src="{BASE}/wp-content/uploads/2026/11/womens-empowerment-1024x600.jpg" class="attachment-large size-large" alt="" />')
+
+
+def update_home():
+    """Homepage Portfolio section: add Women's Empowerment as no. 4 (mobile list + desktop rows)."""
+    f = ROOT / "index.html"
+    html = f.read_text()
+    if f'elementor-size-default"><a href="{BASE}/{SLUG}/"' in html:
+        return
+
+    def cut(start_id, end_id):
+        a = html.index(f'\t\t<div class="elementor-element elementor-element-{start_id} ')
+        b = html.index(f'\t\t<div class="elementor-element elementor-element-{end_id} ')
+        return a, b
+
+    def swap(block, frm, to, label=None):
+        """Put category `to` (slug, heading text, img tag) into a block built for `frm`."""
+        block = re.sub(rf'<a href="{BASE}/{frm[0]}/">[^<]*</a>', f'<a href="{BASE}/{to[0]}/">{label or to[1]}</a>', block)
+        return re.sub(r'<img [^>]*>', lambda m: to[2], block, count=1)
+
+    def img(block):
+        return re.search(r'<img [^>]*>', block).group(0)
+
+    # desktop rows (photo side alternates): rows N and P, then the "Partner with us" row
+    n0, n1 = cut("605d91d", "511878e")
+    p0, p1 = cut("511878e", "abfbd32")
+    rowN, rowP = html[n0:n1], html[p0:p1]
+    N = ("nurturing-excellence", "Nurturing Excellence", img(rowN))
+    P = ("philanthropy-partners", "Philanthropy Partners", img(rowP))
+    W = (SLUG, TITLE, HOME_IMG)
+    desktop = swap(rowN, N, W) + swap(rowP, P, N) + swap(rowN, N, P)
+
+    # mobile list: heading "n) Name" + photo
+    m0, m1 = cut("1ebe1b1", "d4bd0d7")
+    q0, q1 = cut("d4bd0d7", "ac4be8b")
+    mobN, mobP = html[m0:m1], html[q0:q1]
+    mobile = (swap(mobN, N, W, f"4) {TITLE}") + mobN.replace("4) Nurturing", "5) Nurturing")
+              + mobP.replace("5) Philanthropy", "6) Philanthropy"))
+
+    assert m1 == q0 and q1 < n0 and n1 == p0
+    html = html[:m0] + mobile + html[q1:n0] + desktop + html[p1:]
+    f.write_text(html)
 
 
 def main():
@@ -80,6 +125,8 @@ def main():
     html = html.replace("%2Flivelihood-enhancement%2F", f"%2F{SLUG}%2F")
     html = html.replace(f'rel="canonical" href="{BASE}/livelihood-enhancement/"', f'rel="canonical" href="{BASE}/{SLUG}/"')
     html = html.replace("\t\t'livelihood-enhancement', ", f"\t\t'{SLUG}', ")
+    html = html.replace("background-image:url(/motivationforexcellence/wp-content/uploads/2024/01/b79d6c_77c46a0159224022bfb6572e44dbd35amv2-1.webp",
+                        "background-image:url(/motivationforexcellence/wp-content/uploads/2026/11/womens-empowerment-1024x600.jpg")
     html = html.replace(" current-menu-item page_item page-item-12515 current_page_item", "")
     g = GRID_RE.search(html)
     boxes = [re.sub(r'data-category="[^"]*"', f'data-category="{SLUG}"',
@@ -101,6 +148,7 @@ def main():
                           rf'\g<1>{BASE}/{SLUG}/\g<2>{TITLE}\g<3>', html)
             html = re.sub(r'pj-categs-[\w-]+', f'pj-categs-{SLUG}', html)
         p.write_text(html)
+    update_home()
     print(f"menu on {len(pages)} pages; moved: {MOVE or 'none yet'}")
 
 
