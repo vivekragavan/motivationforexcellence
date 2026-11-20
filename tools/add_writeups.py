@@ -216,8 +216,9 @@ def update_page(slug, meta, sections):
             # intro, existing Tribal Utthan, then only the new phase + the three new projects
             "baif": lambda: [to_html(pre), old, H("Tribal Utthan: the next phase, 54 new villages in Dhanora block"),
                      to_html(after_first_para(subs[0][1])), full(1), full(2), full(3)],
-            "central-square-foundation": lambda: [full(0), old],          # new 2025 partnership, then existing 2020 grant
-            "mantra4change": lambda: [full(0), old, "<p>The EduMentum programme has been extended to March 2027.</p>"],
+            # existing project first, then the new one (same order on every page)
+            "central-square-foundation": lambda: [old, full(0)],          # existing grant, then new 2025 partnership
+            "mantra4change": lambda: [old, "<p>The EduMentum programme has been extended to March 2027.</p>", full(0)],
             "ramakrishna-mission": lambda: [old, H("The Awakened Citizen Programme, 2025–2028: making value education self-sustaining"),
                                     to_html(after_first_para(subs[0][1]))],
             "quest": lambda: [old, sub(0), full(1)],                        # Palavee + extension sentence, then campus
