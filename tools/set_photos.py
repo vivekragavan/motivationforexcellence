@@ -17,6 +17,7 @@ PH = B + "wp-content/uploads/placeholders/"
 UP = B + "wp-content/uploads/2026/11/"
 
 PHOTOS = {  # slug: where the photo came from (for the record)
+    "ashoka-university": "x.ashoka.edu.in/about-us/ (AshokaX Overview page header), chosen by the owner",
     "madhi-foundation": "madhifoundation.org home page",
     "makerghat": "makerghat.org home page (cropped below the speech bubbles)",
     "stem-shiksha-foundation": "makerbhavanfoundation.org (Indian partner of Maker Bhavan Foundation)",
