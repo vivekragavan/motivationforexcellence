@@ -42,12 +42,42 @@ MOVES = {
     "search-nirman": "nurturing-excellence",
 }
 
-# one programme of a two-programme partner listed in a second category: an extra box linking to
-# that programme's heading on the same project page (slug, category, box title, anchor, heading start)
-EXTRA = [
-    ("makerghat", "nurturing-excellence", "MakerGhat &#8211; IGNITE Maharashtra", "ignite", "IGNITE Maharashtra:"),
-    ("stem-shiksha-foundation", "nurturing-excellence", "Maker Bhavan &#8211; InventX", "inventx", "Scaling InventX:"),
+# one programme of a two-programme partner shown as a separate, self-contained project in another
+# category: a new project page = the partner's intro + only that programme (the other one is cut),
+# plus its own listing box. The original page is left as it is.
+SPLIT = [
+    dict(slug="makerghat", new="makerghat-ignite", post="23903", cat="nurturing-excellence",
+         title="MakerGhat &#8211; IGNITE Maharashtra", keep="IGNITE Maharashtra:", drop="Maker Maharashtra:",
+         intro=("MFE supports two linked programmes", "MFE supports IGNITE Maharashtra over four years.")),
+    dict(slug="stem-shiksha-foundation", new="maker-bhavan-inventx", post="23904", cat="nurturing-excellence",
+         title="Maker Bhavan &#8211; InventX", keep="Scaling InventX:", drop="Nationwide expansion",
+         intro=("MFE supports two programmes", "MFE supports InventX over three years (October 2026 to September 2029).")),
 ]
+
+
+def make_split(sp):
+    html = (ROOT / "project" / sp["slug"] / "index.html").read_text()
+    old = re.search(r'<h1 class="entry-title">([^<]*)</h1>', html).group(1)
+    html = re.sub(rf'<p>{re.escape(sp["intro"][0])}[^<]*</p>', f'<p>{sp["intro"][1]}</p>', html)
+    html = re.sub(rf'<p><strong><em>{re.escape(sp["drop"])}.*?(?=<p><strong><em>{re.escape(sp["keep"])})', "", html, flags=re.S)
+    for a, b in ((f"<title>{old} &#8211;", f"<title>{sp['title']} &#8211;"),
+                 (f'<h1 class="entry-title">{old}</h1>', f'<h1 class="entry-title">{sp["title"]}</h1>'),
+                 (f'alt="{old}"', f'alt="{sp["title"]}"'), (f'title="{old}"', f'title="{sp["title"]}"'),
+                 (f"{BASE}/project/{sp['slug']}/", f"{BASE}/project/{sp['new']}/"),
+                 (f"%2Fproject%2F{sp['slug']}%2F", f"%2Fproject%2F{sp['new']}%2F")):
+        html = html.replace(a, b)
+    html = re.sub(r'post-\d+', f'post-{sp["post"]}', html)
+    out = ROOT / "project" / sp["new"] / "index.html"
+    out.parent.mkdir(exist_ok=True)
+    out.write_text(html)
+
+
+def split_box(box, sp):
+    old = re.search(r'alt="([^"]*)"', box).group(1)
+    box = box.replace(f'title="{old}"', f'title="{sp["title"]}"').replace(f'alt="{old}"', f'alt="{sp["title"]}"')
+    box = box.replace(f">{old}<", f">{sp['title']}<").replace(f"{BASE}/project/{sp['slug']}/", f"{BASE}/project/{sp['new']}/")
+    return re.sub(r'post-\d+', f'post-{sp["post"]}', box)
+
 
 ART_RE = re.compile(r'<!-- Start Standard Project -->\s*<article id="post-\d+".*?</article>\s*<!-- Finish Standard Project -->\s*', re.S)
 GRID_RE = re.compile(r'(<div class="portfolio grid [^"]*">\n)(.*?)(</div><div class="cmsmasters_wrap_more_projects)', re.S)
@@ -126,21 +156,16 @@ def main():
         f = ROOT / cat / "index.html"
         g = GRID_RE.search(f.read_text()) if f.exists() else None
         for a in ART_RE.findall(g.group(2)) if g else []:
-            if 'data-extra="1"' in a:
-                continue
             dest = MOVES.get(project_slug(a), cat)
             if dest != cat:
                 a = re.sub(r'data-category="[^"]*"', f'data-category="{dest}"',
                            re.sub(r'pj-categs-[\w-]+', f'pj-categs-{dest}', a))
             (boxes[dest] if dest == cat else incoming[dest]).append(a)
-    for slug, cat, title, anchor, _ in EXTRA:
-        a = next(a for lst in boxes.values() for a in lst if project_slug(a) == slug)
-        old = re.search(r'alt="([^"]*)"', a).group(1)
-        a = a.replace(f'title="{old}"', f'title="{title}"').replace(f'alt="{old}"', f'alt="{title}"').replace(f">{old}<", f">{title}<")
-        a = a.replace(f'{BASE}/project/{slug}/"', f'{BASE}/project/{slug}/#{anchor}"')
-        a = re.sub(r'post-(\d+)', r'post-\1-2', a).replace("<article ", '<article data-extra="1" ', 1)
-        a = re.sub(r'data-category="[^"]*"', f'data-category="{cat}"', re.sub(r'pj-categs-[\w-]+', f'pj-categs-{cat}', a))
-        incoming[cat].append(a)
+    for sp in SPLIT:
+        make_split(sp)
+        if not any(project_slug(a) == sp["new"] for a in boxes[sp["cat"]]):
+            orig = next(a for lst in boxes.values() for a in lst if project_slug(a) == sp["slug"])
+            incoming[sp["cat"]].append(split_box(orig, sp))
     for cat in boxes:  # boxes already on a page keep their order; newly moved ones go last
         boxes[cat] += incoming[cat]
     found = {project_slug(a) for lst in boxes.values() for a in lst}
@@ -178,24 +203,15 @@ def main():
             continue
         html = add_menu(p.read_text())
         rel = p.relative_to(ROOT).parts
-        if len(rel) == 3 and rel[0] == "project" and rel[1] in MOVES:
-            dest = MOVES[rel[1]]
+        split_dest = {sp["new"]: sp["cat"] for sp in SPLIT}
+        if len(rel) == 3 and rel[0] == "project" and (rel[1] in MOVES or rel[1] in split_dest):
+            dest = MOVES.get(rel[1]) or split_dest[rel[1]]
             label = CAT_LABEL[dest]
             html = re.sub(r'(<span class="cmsmasters_project_category"><a href=")[^"]*(" class="cmsmasters_cat_color[^"]*" rel="category tag">)[^<]*(</a>)',
                           rf'\g<1>{BASE}/{dest}/\g<2>{label}\g<3>', html)
             html = re.sub(r'pj-categs-[\w-]+', f'pj-categs-{dest}', html)
             html = re.sub(r'(<div class="project_features_item_title">Area of Work</div><div class="project_features_item_desc">)[^<]*(</div>)',
                           rf'\g<1>{label}\g<2>', html)
-        for slug, cat, title, anchor, heading in EXTRA:
-            if rel == ("project", slug, "index.html"):
-                html = html.replace(f'<p><strong><em>{heading}', f'<p id="{anchor}" style="scroll-margin-top:120px"><strong><em>{heading}')
-                links = [m.group(0) for m in re.finditer(r'<a href="[^"]*" class="cmsmasters_cat_color[^"]*" rel="category tag">[^<]*</a>',
-                         re.search(r'<span class="cmsmasters_project_category">(.*?)</span>', html).group(1))]
-                links = [l for l in links if f'{BASE}/{cat}/' not in l]
-                links.append(f'<a href="{BASE}/{cat}/" class="cmsmasters_cat_color" rel="category tag">{CAT_LABEL[cat]}</a>')
-                html = re.sub(r'(<span class="cmsmasters_project_category">).*?(</span>)', lambda m: m.group(1) + ", ".join(links) + m.group(2), html, count=1)
-                html = re.sub(r'(<div class="project_features_item_title">Area of Work</div><div class="project_features_item_desc">)[^<]*(</div>)',
-                              lambda m: m.group(1) + ", ".join(re.sub("<[^>]*>", "", l) for l in links) + m.group(2), html)
         p.write_text(html)
     update_home()
     print(f"menu on {len(pages)} pages; moves: {MOVES}")
