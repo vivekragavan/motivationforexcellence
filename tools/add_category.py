@@ -90,6 +90,9 @@ def split_box(box, sp):
     return re.sub(r'post-\d+', f'post-{sp["post"]}', box)
 
 
+# listing-box title only (the project page keeps its own title)
+BOX_TITLE = {"ashoka-university": "Ashoka University &#8211; OlympiadX"}
+
 ART_RE = re.compile(r'<!-- Start Standard Project -->\s*<article id="post-\d+".*?</article>\s*<!-- Finish Standard Project -->\s*', re.S)
 GRID_RE = re.compile(r'(<div class="portfolio grid [^"]*">\n)(.*?)(</div><div class="cmsmasters_wrap_more_projects)', re.S)
 
@@ -178,6 +181,13 @@ def main():
         if not any(project_slug(a) == sp["new"] for a in boxes[sp["cat"]]):
             orig = next(a for lst in boxes.values() for a in lst if project_slug(a) == sp["slug"])
             incoming[sp["cat"]].append(split_box(orig, sp))
+    for cat in boxes:
+        for i, a in enumerate(boxes[cat] + incoming[cat]):
+            new = BOX_TITLE.get(project_slug(a))
+            if new:
+                old = re.search(r'alt="([^"]*)"', a).group(1)
+                a = a.replace(f'alt="{old}"', f'alt="{new}"').replace(f'title="{old}"', f'title="{new}"').replace(f">{old}<", f">{new}<")
+                (boxes[cat] if i < len(boxes[cat]) else incoming[cat])[i if i < len(boxes[cat]) else i - len(boxes[cat])] = a
     for cat in boxes:  # boxes already on a page keep their order; newly moved ones go last
         boxes[cat] += incoming[cat]
     found = {project_slug(a) for lst in boxes.values() for a in lst}
