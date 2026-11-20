@@ -32,6 +32,10 @@ MOVES = {
     "society-for-nutrition-education-and-health-action": SLUG,
     "chetana-vikas": SLUG,
     "haqdarshak": "livelihood-enhancement",
+    "prakriti": "livelihood-enhancement",
+    "gram-sewa-mandal": "livelihood-enhancement",
+    "farmers-for-forests": "livelihood-enhancement",
+    "movement-for-scavenger-community": "livelihood-enhancement",
 }
 
 ART_RE = re.compile(r'<!-- Start Standard Project -->\s*<article id="post-\d+".*?</article>\s*<!-- Finish Standard Project -->\s*', re.S)
