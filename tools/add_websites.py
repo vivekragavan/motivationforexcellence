@@ -58,7 +58,7 @@ SITES = {
     "tata-memorial-centre": "https://tmc.gov.in/",
     "tata-trusts-dmhp-rmhp": "https://www.tatatrusts.org/",
     "test-project": "https://www.swasthyaswaraj.org/",  # Swasthya Swaraj Society
-    "vayam": "https://vayamindia.wordpress.com/",
+    "vayam": "https://vayammovement.in/",
     "wotr": "https://wotr.org/",
 }
 
