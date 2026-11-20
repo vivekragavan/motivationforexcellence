@@ -86,6 +86,7 @@ def split_box(box, sp):
     old = re.search(r'alt="([^"]*)"', box).group(1)
     box = box.replace(f'title="{old}"', f'title="{sp["title"]}"').replace(f'alt="{old}"', f'alt="{sp["title"]}"')
     box = box.replace(f">{old}<", f">{sp['title']}<").replace(f"{BASE}/project/{sp['slug']}/", f"{BASE}/project/{sp['new']}/")
+    box = re.sub(r'data-category="[^"]*"', f'data-category="{sp["cat"]}"', re.sub(r'pj-categs-[\w-]+', f'pj-categs-{sp["cat"]}', box))
     return re.sub(r'post-\d+', f'post-{sp["post"]}', box)
 
 
@@ -173,6 +174,7 @@ def main():
             (boxes[dest] if dest == cat else incoming[dest]).append(a)
     for sp in SPLIT:
         make_split(sp)
+        boxes[sp["cat"]] = [split_box(a, sp) if project_slug(a) == sp["new"] else a for a in boxes[sp["cat"]]]
         if not any(project_slug(a) == sp["new"] for a in boxes[sp["cat"]]):
             orig = next(a for lst in boxes.values() for a in lst if project_slug(a) == sp["slug"])
             incoming[sp["cat"]].append(split_box(orig, sp))
