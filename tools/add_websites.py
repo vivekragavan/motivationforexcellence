@@ -33,7 +33,7 @@ SITES = {
     "gravis": "https://www.gravis.org.in/",
     "haqdarshak": "https://www.haqdarshak.com/",
     "harper-collins": "https://harpercollins.co.in/",
-    "healing-fields-foundation": "https://healingfields.org/",
+    "healing-fields-foundation": "https://healing-fields.org/",
     "institute-for-psychological-health": "https://www.healthymind.org/",
     "karuna-trust": "https://www.karunatrust.org/",
     "lfe": "https://www.leadershipforequity.org/",
