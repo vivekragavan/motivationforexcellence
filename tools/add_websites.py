@@ -53,6 +53,7 @@ SITES = {
     "search-nirman": "https://searchforhealth.ngo/",
     "society-for-education-action-and-research-in-community-health": "https://searchforhealth.ngo/",
     "society-for-nutrition-education-and-health-action": "https://www.snehamumbai.org/",
+    "stem-shiksha-foundation": "https://makerbhavanfoundation.org/",  # Indian partner of Maker Bhavan Foundation
     "stree-mukti-sanghatana": "https://streemuktisanghatana.org/",
     "tata-memorial-centre": "https://tmc.gov.in/",
     "tata-trusts-dmhp-rmhp": "https://www.tatatrusts.org/",
