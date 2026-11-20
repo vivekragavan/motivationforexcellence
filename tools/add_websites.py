@@ -45,7 +45,6 @@ SITES = {
     "oasis": "https://oasismovement.in/",
     "pradan": "https://www.pradan.net/",
     "pratham": "https://www.pratham.org/",
-    "prayas": "https://www.tiss.edu/view/11/projects/prayas/",
     "quest": "https://quest.org.in/",
     "ramakrishna-mission": "https://belurmath.org/",
     "rocket-learning": "https://rocketlearning.org/",
