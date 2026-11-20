@@ -3,7 +3,7 @@
 
 * menu item under Our Portfolio, after Livelihood Enhancement, on every page
 * womens-empowerment/index.html built from the Livelihood Enhancement page
-* projects listed in MOVE are moved onto it: their listing box is taken off
+* projects listed in MOVES are moved to their new category page: their listing box is taken off
   their old category page, and the project page's "Categories:" link and
   pj-categs class are switched to the new category.
 
@@ -21,8 +21,18 @@ TEMPLATE = "livelihood-enhancement"
 CATS = ["healthcare", "education-training", "livelihood-enhancement",
         "nurturing-excellence", "philanthropy-partners"]
 
-# project slugs to move onto the Women's Empowerment page
-MOVE = ["aaa", "stree-mukti-sanghatana", "society-for-nutrition-education-and-health-action", "chetana-vikas"]
+CAT_LABEL = {"healthcare": "HealthCare", "education-training": "Education &amp; Training",
+             "livelihood-enhancement": "Livelihood Enhancement", "nurturing-excellence": "Nurturing Excellence",
+             "philanthropy-partners": "Philanthropy Partners", SLUG: TITLE}
+
+# project slug -> category page it should be listed on (Categories + Area of Work updated too)
+MOVES = {
+    "aaa": SLUG,
+    "stree-mukti-sanghatana": SLUG,
+    "society-for-nutrition-education-and-health-action": SLUG,
+    "chetana-vikas": SLUG,
+    "haqdarshak": "livelihood-enhancement",
+}
 
 ART_RE = re.compile(r'<!-- Start Standard Project -->\s*<article id="post-\d+".*?</article>\s*<!-- Finish Standard Project -->\s*', re.S)
 GRID_RE = re.compile(r'(<div class="portfolio grid [^"]*">\n)(.*?)(</div><div class="cmsmasters_wrap_more_projects)', re.S)
@@ -94,29 +104,33 @@ def update_home():
 
 
 def main():
-    # collect listing boxes: from category pages (moving those in MOVE) and the existing new page
-    moved = {}
-    for cat in CATS + [SLUG]:
+    # gather every listing box from every category page, then redistribute by MOVES
+    boxes = {cat: [] for cat in CATS + [SLUG]}
+    incoming = {cat: [] for cat in boxes}
+    for cat in boxes:
         f = ROOT / cat / "index.html"
-        if not f.exists():
-            continue
-        html = f.read_text()
-        g = GRID_RE.search(html)
-        if not g:
-            continue
-        keep = []
-        for a in ART_RE.findall(g.group(2)):
-            s = project_slug(a)
-            if s in MOVE and s not in moved:
-                moved[s] = a
-            elif cat != SLUG:
-                keep.append(a)
-        if cat != SLUG:
-            html = html[:g.start(2)] + "".join(keep) + html[g.end(2):]
-            f.write_text(html)
-    missing = [s for s in MOVE if s not in moved]
+        g = GRID_RE.search(f.read_text()) if f.exists() else None
+        for a in ART_RE.findall(g.group(2)) if g else []:
+            dest = MOVES.get(project_slug(a), cat)
+            if dest != cat:
+                a = re.sub(r'data-category="[^"]*"', f'data-category="{dest}"',
+                           re.sub(r'pj-categs-[\w-]+', f'pj-categs-{dest}', a))
+            (boxes[dest] if dest == cat else incoming[dest]).append(a)
+    for cat in boxes:  # boxes already on a page keep their order; newly moved ones go last
+        boxes[cat] += incoming[cat]
+    found = {project_slug(a) for lst in boxes.values() for a in lst}
+    missing = [s for s in MOVES if s not in found]
     if missing:
         raise SystemExit(f"not found on any category page: {missing}")
+
+    def fill(html, cat):
+        g = GRID_RE.search(html)
+        return html[:g.start(2)] + "".join(boxes[cat]) + html[g.end(2):]
+
+    for cat in CATS:
+        f = ROOT / cat / "index.html"
+        if GRID_RE.search(f.read_text()):
+            f.write_text(fill(f.read_text(), cat))
 
     # build the new category page from the template
     html = (ROOT / TEMPLATE / "index.html").read_text()
@@ -128,30 +142,28 @@ def main():
     html = html.replace("background-image:url(/motivationforexcellence/wp-content/uploads/2024/01/b79d6c_77c46a0159224022bfb6572e44dbd35amv2-1.webp",
                         "background-image:url(/motivationforexcellence/wp-content/uploads/2026/11/womens-empowerment-1024x600.jpg")
     html = html.replace(" current-menu-item page_item page-item-12515 current_page_item", "")
-    g = GRID_RE.search(html)
-    boxes = [re.sub(r'data-category="[^"]*"', f'data-category="{SLUG}"',
-                    re.sub(r'pj-categs-[\w-]+', f'pj-categs-{SLUG}', moved[s])) for s in MOVE]
-    html = html[:g.start(2)] + "".join(boxes) + html[g.end(2):]
     out = ROOT / SLUG / "index.html"
     out.parent.mkdir(exist_ok=True)
-    out.write_text(add_menu(html, current=True))
+    out.write_text(add_menu(fill(html, SLUG), current=True))
 
-    # menu on every page; category link on moved project pages
+    # menu on every page; Categories + Area of Work on moved project pages
     pages = [p for p in ROOT.rglob("index.html") if not p.relative_to(ROOT).parts[0].startswith("wp-")]
     for p in pages:
         if p == out:
             continue
         html = add_menu(p.read_text())
         rel = p.relative_to(ROOT).parts
-        if len(rel) == 3 and rel[0] == "project" and rel[1] in MOVE:
+        if len(rel) == 3 and rel[0] == "project" and rel[1] in MOVES:
+            dest = MOVES[rel[1]]
+            label = CAT_LABEL[dest]
             html = re.sub(r'(<span class="cmsmasters_project_category"><a href=")[^"]*(" class="cmsmasters_cat_color[^"]*" rel="category tag">)[^<]*(</a>)',
-                          rf'\g<1>{BASE}/{SLUG}/\g<2>{TITLE}\g<3>', html)
-            html = re.sub(r'pj-categs-[\w-]+', f'pj-categs-{SLUG}', html)
+                          rf'\g<1>{BASE}/{dest}/\g<2>{label}\g<3>', html)
+            html = re.sub(r'pj-categs-[\w-]+', f'pj-categs-{dest}', html)
             html = re.sub(r'(<div class="project_features_item_title">Area of Work</div><div class="project_features_item_desc">)[^<]*(</div>)',
-                          rf'\g<1>{TITLE}\g<2>', html)
+                          rf'\g<1>{label}\g<2>', html)
         p.write_text(html)
     update_home()
-    print(f"menu on {len(pages)} pages; moved: {MOVE or 'none yet'}")
+    print(f"menu on {len(pages)} pages; moves: {MOVES}")
 
 
 if __name__ == "__main__":
