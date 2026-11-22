@@ -70,5 +70,19 @@ for ref in pages:
         sys.exit(f"{slug}: insertion point not found uniquely")
     page.write_text(s[:i] + new + s[i:], encoding="utf-8")
     added.append(slug)
+
+# logo link = the page's Website line (add_websites.py); no Website line -> logo without a link
+WEB = re.compile(r'project_website">.*?<a href="([^"]*)"', re.S)
+LOGO = re.compile(r'(?:<a [^>]*>)?(<img class="%s"[^>]*>)(?:</a>)?' % MARK)
+for page in sorted((ROOT / "project").glob("*/index.html")):
+    s = page.read_text(encoding="utf-8")
+    if MARK not in s:
+        continue
+    w = WEB.search(s)
+    def relink(m):
+        return f'<a href="{w.group(1)}" target="_blank" rel="noopener">{m.group(1)}</a>' if w else m.group(1)
+    t = LOGO.sub(relink, s)
+    if t != s:
+        page.write_text(t, encoding="utf-8")
 print("added:", len(added), added)
 print("no logo:", skipped)
